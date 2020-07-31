@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.HorizontalScrollView;
@@ -29,13 +30,15 @@ import androidx.lifecycle.LifecycleOwner;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
-
 
     ImageView filters,torch,flash,popup,switch_camera,image_capture;
     HorizontalScrollView scrollView;
@@ -48,10 +51,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     ImageCapture imageCapture;
     UI_handling ui_handling;
     ProcessCameraProvider cameraProvider;
-    ExecutorService cameraExecutor;
+    Executor cameraExecutor;
     CameraInfo camerainfo;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         scrollView=findViewById(R.id.filters_scroll_view);
         previewView=findViewById(R.id.camera_preview);
         scrollView.setVisibility(View.GONE);
+
+        cameraExecutor=Executors.newSingleThreadExecutor();
+
         ui_handling=new UI_handling(CameraActivity.this);
         checkpermissions();
         OpenCamera();
@@ -205,18 +210,26 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     public File CreateImageDirectory(){
         File storage = Environment.getExternalStorageDirectory();
-        File dir = new File(storage.getAbsolutePath() + "/Camera");
+        File dir = new File(storage.getAbsolutePath() + "/tasveer");
         if(!dir.exists()) {
             dir.mkdirs();
         }
         String fileName = String.format("%d.jpeg", System.currentTimeMillis());
         File outFile = new File(dir, fileName);
-        Toast.makeText(CameraActivity.this,"filename "+ fileName,Toast.LENGTH_SHORT).show();
+//        Toast.makeText(CameraActivity.this,"filename "+ fileName,Toast.LENGTH_SHORT).show();
         return outFile;
     }
 
-    public void clickimageCapture() {
-        File file=CreateImageDirectory();
+    public void clickimageCapture(){
+//        File file=CreateImageDirectory();
+        File storage = Environment.getExternalStorageDirectory();
+        File dir = new File(storage.getAbsolutePath());
+        if(!dir.exists()) {
+            dir.mkdirs();
+        }
+        String fileName = String.format("%d.jpg", System.currentTimeMillis());
+        File file = new File(dir, fileName);
+//        file.createNewFile();
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(file)
 //                .setMetadata(metadata)
                 .build();
@@ -227,8 +240,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             }
 
             @Override
-            public void onError(@NonNull ImageCaptureException exception) {
-
+            public void onError(@NonNull ImageCaptureException e) {
+                e.printStackTrace();
             }
         });
     }
