@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.HorizontalScrollView;
@@ -15,9 +14,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
@@ -30,10 +31,8 @@ import androidx.lifecycle.LifecycleOwner;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -49,6 +48,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 //    TextureView textureView;
     PreviewView previewView;
     ImageCapture imageCapture;
+    ImageAnalysis imageAnalyser;
     UI_handling ui_handling;
     ProcessCameraProvider cameraProvider;
     Executor cameraExecutor;
@@ -71,8 +71,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         previewView=findViewById(R.id.camera_preview);
         scrollView.setVisibility(View.GONE);
 
-        cameraExecutor=Executors.newSingleThreadExecutor();
 
+        cameraExecutor=Executors.newSingleThreadExecutor();
         ui_handling=new UI_handling(CameraActivity.this);
         checkpermissions();
         OpenCamera();
@@ -141,7 +141,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         CameraSelector cameraSelector=cameraselector();
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview,imageCapture);
+        imageAnalyser=imageAnalysis();
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview,imageCapture,imageAnalysis());
 
         preview.setSurfaceProvider(previewView.createSurfaceProvider(camera.getCameraInfo()));
     }
@@ -163,6 +165,18 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 .build();
         return imageCapture;
     }
+
+    private ImageAnalysis imageAnalysis(){
+        ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
+                // We request aspect ratio but no resolution
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                // Set initial target rotation, we will have to call this again if rotation changes
+                // during the lifecycle of this use case
+//                .setTargetRotation(rotation)
+                .build();
+        return imageAnalyzer;
+    }
+    
 
     public void checkpermissions() {
         String[] permissions = {
@@ -223,15 +237,15 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     public void clickimageCapture(){
 //        File file=CreateImageDirectory();
         File storage = Environment.getExternalStorageDirectory();
-        File dir = new File(storage.getAbsolutePath());
+        File dir = new File(storage.getAbsolutePath()+"/click");
         if(!dir.exists()) {
             dir.mkdirs();
         }
         String fileName = String.format("%d.jpg", System.currentTimeMillis());
         File file = new File(dir, fileName);
-//        file.createNewFile();
+
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(file)
-//                .setMetadata(metadata)
+
                 .build();
         imageCapture.takePicture(outputOptions,cameraExecutor, new ImageCapture.OnImageSavedCallback() {
             @Override
