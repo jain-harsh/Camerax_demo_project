@@ -1,28 +1,19 @@
 package com.example.clickme;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.net.Uri;
-import android.os.Environment;
-import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import static android.content.ContentValues.TAG;
+import androidx.camera.core.TorchState;
 
 public class UI_handling {
     CameraActivity cameraActivity;
     public int flashmode= ImageCapture.FLASH_MODE_OFF;
     public int camera_face= CameraSelector.LENS_FACING_BACK;
+    int torchState= TorchState.OFF;
 
     public UI_handling(CameraActivity cameraActivity) {
         this.cameraActivity = cameraActivity;
@@ -40,11 +31,19 @@ public class UI_handling {
             flashmode=ImageCapture.FLASH_MODE_OFF;
             view.setImageResource(R.drawable.flash_off);
         }
-        cameraActivity.bindPreview();
+//        cameraActivity.bindPreview();
+        cameraActivity.imageCapture.setFlashMode(flashmode);
     }
 
-    public void clickTorch(){
-
+    public void clickTorch(Camera camera){
+        CameraControl cameraControl=camera.getCameraControl();
+        if(torchState==TorchState.OFF){
+            torchState=TorchState.ON;
+            cameraControl.enableTorch(true);
+        }else{
+            cameraControl.enableTorch(false);
+            torchState=TorchState.OFF;
+        }
     }
 
     public void switchCamera(){

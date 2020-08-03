@@ -15,6 +15,7 @@
             android:orientation="horizontal">
 
             <RelativeLayout
+                android:id="@+id/gray"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="15dp">
@@ -29,7 +30,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/effect1"
-                    android:text="effect1"
+                    android:text="Black \nwhite"
                     android:textColor="#FFFFFF" />
 
             </RelativeLayout>

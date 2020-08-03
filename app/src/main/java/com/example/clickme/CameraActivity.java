@@ -5,10 +5,12 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -46,13 +48,17 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     int REQUEST_CAMERA_CODE=0;
     int WRITE_TO_EXTERNAL_STORAGE=1;
 //    TextureView textureView;
+    RelativeLayout gray;
     PreviewView previewView;
+
+    TextureView textureView;
     ImageCapture imageCapture;
     ImageAnalysis imageAnalyser;
     UI_handling ui_handling;
     ProcessCameraProvider cameraProvider;
     Executor cameraExecutor;
     CameraInfo camerainfo;
+    Camera camera;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
 
     @Override
@@ -66,11 +72,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         findViewById(R.id.flash).setOnClickListener(this);
         findViewById(R.id.switch_camera).setOnClickListener(this);
         findViewById(R.id.image_capture).setOnClickListener(this);
+        findViewById(R.id.gray).setOnClickListener(this);
 
         scrollView=findViewById(R.id.filters_scroll_view);
         previewView=findViewById(R.id.camera_preview);
+//        textureView=findViewById(R.id.camera_preview);
         scrollView.setVisibility(View.GONE);
-
 
         cameraExecutor=Executors.newSingleThreadExecutor();
         ui_handling=new UI_handling(CameraActivity.this);
@@ -101,6 +108,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 break;
 
             case R.id.torch:
+                ui_handling.clickTorch(camera);
                 break;
 
             case R.id.switch_camera:ui_handling.switchCamera();
@@ -108,6 +116,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
             case R.id.image_capture:
                 clickimageCapture();
+                break;
+
+            case R.id.gray:
+                Toast.makeText(getApplicationContext(),"gray", Toast.LENGTH_SHORT).show();
                 break;
 
             default:
@@ -143,9 +155,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         imageAnalyser=imageAnalysis();
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview,imageCapture,imageAnalysis());
+        camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview,imageCapture,imageAnalysis());
 
         preview.setSurfaceProvider(previewView.createSurfaceProvider(camera.getCameraInfo()));
+//        preview.setSurfaceProvider(textureView.setSurfaceTexture());
     }
 
     private CameraSelector cameraselector() {
@@ -174,6 +187,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 // during the lifecycle of this use case
 //                .setTargetRotation(rotation)
                 .build();
+
+//        imageAnalyzer.setAnalyzer(new ImageAnalysis().);
         return imageAnalyzer;
     }
     
@@ -235,14 +250,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     public void clickimageCapture(){
-//        File file=CreateImageDirectory();
-        File storage = Environment.getExternalStorageDirectory();
-        File dir = new File(storage.getAbsolutePath()+"/click");
-        if(!dir.exists()) {
-            dir.mkdirs();
-        }
-        String fileName = String.format("%d.jpg", System.currentTimeMillis());
-        File file = new File(dir, fileName);
+        File file=CreateImageDirectory();
 
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(file)
 
@@ -250,7 +258,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         imageCapture.takePicture(outputOptions,cameraExecutor, new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                Toast.makeText(CameraActivity.this, "Image Saved ", Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
