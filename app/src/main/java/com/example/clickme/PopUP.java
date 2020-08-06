@@ -8,8 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import androidx.annotation.ColorRes;
-
 public class PopUP extends LinearLayout {
     CameraActivity activity;
     Boolean pop_up_opened=false;
