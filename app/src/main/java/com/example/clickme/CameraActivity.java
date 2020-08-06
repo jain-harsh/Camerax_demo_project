@@ -59,7 +59,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     ImageView filters, torch, flash, popup, switch_camera, image_capture;
     HorizontalScrollView scrollView;
     int count = 0;
-    preview preview;
     int REQUEST_CAMERA_CODE = 0;
     int WRITE_TO_EXTERNAL_STORAGE = 1;
     //    TextureView textureView;
